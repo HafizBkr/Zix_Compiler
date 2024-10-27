@@ -2,177 +2,146 @@ package parser
 
 import (
 	"fmt"
-	"strconv"
+	"hafizbkrcompiler/lexer"
+	"strings"
 )
 
-// Types de nœuds de l'AST
-type Node interface {
-	Evaluate() int // Méthode d'évaluation
-	Optimize() Node // Méthode d'optimisation
-}
-
-type IntegerNode struct {
-	Value int
-}
-
-type OperatorNode struct {
-	Left     Node
-	Operator Token
-	Right    Node
-}
-
-// Nœud pour les instructions if
-type IfNode struct {
-	Condition Node
-	Then      Node
-	Else      Node // Optionnel
-}
-
-// Parser structure
 type Parser struct {
-	lexer    *Lexer
-	curToken Token
-	curLit   string
-	curPos   Position
+	lex     *lexer.Lexer
+	current lexer.Token
 }
 
-// Crée un nouveau parser avec un lexer
-func NewParser(lexer *Lexer) *Parser {
-	p := &Parser{lexer: lexer}
-	p.nextToken()
+func NewParser(lex *lexer.Lexer) *Parser {
+	p := &Parser{lex: lex}
+	p.nextToken() // Initialiser le premier token
 	return p
 }
 
-// Avance au prochain token
 func (p *Parser) nextToken() {
-	p.curPos, p.curToken, p.curLit = p.lexer.Lex()
+	p.current = p.lex.NextToken()
 }
 
-// Parse une expression complète
-func (p *Parser) ParseExpression() (Node, error) {
-	return p.parseBinaryExpression(0)
-}
-
-// Parse une expression binaire en fonction de la priorité
-func (p *Parser) parseBinaryExpression(minPrecedence int) (Node, error) {
-	left, err := p.parsePrimary()
-	if err != nil {
-		return nil, err
-	}
-
-	for p.curToken == ADD || p.curToken == SUB || p.curToken == MUL || p.curToken == DIV {
-		precedence := p.getPrecedence(p.curToken)
-		if precedence < minPrecedence {
-			break
-		}
-
-		operator := p.curToken
-		p.nextToken()
-
-		right, err := p.parseBinaryExpression(precedence + 1)
-		if err != nil {
-			return nil, err
-		}
-
-		left = &OperatorNode{
-			Left:     left,
-			Operator: operator,
-			Right:    right,
-		}
-	}
-	return left, nil
-}
-
-// Parse une valeur primaire (entier ou variable)
-func (p *Parser) parsePrimary() (Node, error) {
-	switch p.curToken {
-	case INT:
-		value, err := strconv.Atoi(p.curLit)
-		if err != nil {
-			return nil, fmt.Errorf("invalid integer: %s", p.curLit)
+func (p *Parser) Evaluate() {
+	for p.current.Type != lexer.EOF {
+		if p.current.Type == lexer.FUNC {
+			p.parseFunction()
+		} else {
+			fmt.Printf("Instruction non prise en charge: %s\n", p.current.Lit)
 		}
 		p.nextToken()
-		return &IntegerNode{Value: value}, nil
-	case IDENT:
-		// Gérer les variables ici si nécessaire
+	}
+}
+
+func (p *Parser) parseFunction() {
+	p.nextToken() // Passer le nom de la fonction
+	if p.current.Type != lexer.IDENT {
+		fmt.Println("Erreur de syntaxe: nom de fonction attendu après 'func'")
+		return
+	}
+	functionName := p.current.Lit
+	fmt.Printf("Détection d'une fonction: %s\n", functionName)
+
+	p.nextToken() // Passer le token suivant
+	if p.current.Type != lexer.LPAREN {
+		fmt.Println("Erreur de syntaxe: '(' attendu après le nom de la fonction")
+		return
+	}
+
+	p.nextToken() // Passer le token suivant
+	if p.current.Type != lexer.RPAREN {
+		fmt.Println("Erreur de syntaxe: ')' attendu après les paramètres de la fonction")
+		return
+	}
+
+	p.nextToken() // Passer le token suivant
+	if p.current.Type != lexer.LBRACE {
+		fmt.Println("Erreur de syntaxe: '{' attendu après la déclaration de la fonction")
+		return
+	}
+
+	p.nextToken() // Passer le contenu de la fonction
+	for p.current.Type != lexer.RBRACE && p.current.Type != lexer.EOF {
+		if p.current.Type == lexer.PRINT {
+			p.parsePrint()
+		} else {
+			fmt.Printf("Instruction non prise en charge: %s\n", p.current.Lit)
+		}
 		p.nextToken()
-		return nil, fmt.Errorf("unexpected token: %s", p.curToken)
-	default:
-		return nil, fmt.Errorf("unexpected token: %s", p.curToken)
+	}
+
+	if p.current.Type == lexer.EOF {
+		fmt.Println("Erreur de syntaxe: '}' attendu à la fin de la fonction")
 	}
 }
 
-// Définit la priorité des opérateurs
-func (p *Parser) getPrecedence(token Token) int {
-	switch token {
-	case MUL, DIV:
-		return 2
-	case ADD, SUB:
-		return 1
-	default:
-		return 0
+func (p *Parser) parsePrint() {
+	p.nextToken() // Passer au token suivant (qui devrait être '(')
+	if p.current.Type != lexer.LPAREN {
+		fmt.Println("Erreur de syntaxe: '(' attendu après 'print'")
+		return
+	}
+
+	p.nextToken() // Passer au contenu à imprimer
+
+	// Vérifier si nous avons un tableau
+	if p.current.Type == lexer.LBRACK {
+		p.parseArray()
+	} else if p.current.Type == lexer.STRING {
+		fmt.Printf("Impression: %s\n", p.current.Lit)
+	} else {
+		fmt.Println("Erreur de syntaxe: nombre ou chaîne attendue dans print")
+		return
+	}
+
+	// Vérification de la parenthèse fermante
+	p.nextToken() // Passer au token suivant
+	if p.current.Type != lexer.RPAREN {
+		fmt.Println("Voici mon premier compilateur")
+		return
+	}
+
+	p.nextToken() // Passer au token suivant
+	if p.current.Type != lexer.SEMICOLON {
+		fmt.Println("Erreur de syntaxe: ';' attendu à la fin de l'instruction print")
+		return
 	}
 }
 
-// Évaluation de l'AST
-func (n *IntegerNode) Evaluate() int {
-	return n.Value
-}
 
-func (n *IntegerNode) Optimize() Node {
-	return n // Les entiers ne nécessitent pas d'optimisation
-}
+func (p *Parser) parseArray() {
+	var numbers []string
+	p.nextToken() // Passer le crochet gauche
 
-func (n *OperatorNode) Evaluate() int {
-	leftValue := n.Left.Evaluate()  // Évalue le sous-arbre gauche
-	rightValue := n.Right.Evaluate() // Évalue le sous-arbre droit
+	// S'assurer que nous ne sommes pas à la fin du fichier
+	if p.current.Type == lexer.RBRACK {
+		fmt.Println("Impression du tableau: []") // Si le tableau est vide
+		p.nextToken() // Passer le crochet droit
+		return
+	}
 
-	switch n.Operator {
-	case ADD:
-		return leftValue + rightValue
-	case SUB:
-		return leftValue - rightValue
-	case MUL:
-		return leftValue * rightValue
-	case DIV:
-		if rightValue == 0 {
-			panic("division par zéro")
+	for p.current.Type != lexer.RBRACK && p.current.Type != lexer.EOF {
+		if p.current.Type == lexer.NUM {
+			numbers = append(numbers, p.current.Lit) // Ajouter le nombre au tableau
+		} else {
+			fmt.Println("Erreur de syntaxe: nombre attendu dans le tableau")
+			return
 		}
-		return leftValue / rightValue
-	default:
-		panic("opérateur inconnu")
-	}
-}
 
-func (n *OperatorNode) Optimize() Node {
-	left := n.Left.Optimize()
-	right := n.Right.Optimize()
+		p.nextToken() // Passer au token suivant
 
-	if n.Operator == ADD {
-		if intNode, ok := left.(*IntegerNode); ok && intNode.Value == 0 {
-			return right // x + 0 -> x
-		}
-		if intNode, ok := right.(*IntegerNode); ok && intNode.Value == 0 {
-			return left // 0 + x -> x
+		if p.current.Type == lexer.COMMA {
+			p.nextToken() // Passer la virgule pour le prochain élément
+		} else if p.current.Type != lexer.RBRACK {
+			fmt.Println("Erreur de syntaxe: ',' ou ']' attendu dans le tableau")
+			return
 		}
 	}
 
-	// Ajoutez d'autres optimisations ici
-
-	return &OperatorNode{Left: left, Operator: n.Operator, Right: right}
-}
-
-// Évaluation pour IfNode
-func (n *IfNode) Evaluate() int {
-	if n.Condition.Evaluate() != 0 { // Supposons que la condition est une expression qui retourne un int
-		return n.Then.Evaluate()
-	} else if n.Else != nil {
-		return n.Else.Evaluate()
+	if p.current.Type == lexer.EOF {
+		fmt.Println("Erreur de syntaxe: ']' attendu à la fin du tableau")
+		return
 	}
-	return 0
-}
 
-func (n *IfNode) Optimize() Node {
-	// Gérer l'optimisation pour les nœuds IfNode si nécessaire
-	return n
+	fmt.Printf("Impression du tableau: [%s]\n", strings.Join(numbers, ", ")) // Afficher le tableau
+	p.nextToken() // Passer le crochet droit
 }

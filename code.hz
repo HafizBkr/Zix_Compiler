@@ -1,0 +1,4 @@
+func Salutation() {
+    print("Bonjour, le monde!");
+    print([1, 2, 3, 4, 5]);
+}

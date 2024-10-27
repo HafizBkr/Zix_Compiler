@@ -1,25 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"hafizbkrcompiler/lexer"
 	"hafizbkrcompiler/parser"
 )
 
 func main() {
-	file, err := os.Open("input.test")
+	// Vérifie si le fichier est fourni en argument
+	if len(os.Args) < 2 {
+		println("Veuillez fournir un fichier à analyser.")
+		return
+	}
+
+	// Ouvre le fichier
+	filename := os.Args[1]
+	file, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		println("Erreur lors de l'ouverture du fichier:", err.Error())
+		return
 	}
 	defer file.Close()
 
-	lexer := parser.NewLexer(file)
-	for {
-		pos, tok, lit := lexer.Lex()
-		if tok == parser.EOF {
-			break
-		}
+	// Crée un nouveau lexer
+	lex := lexer.NewLexer(file)
+	// Crée un nouveau parser
+	p := parser.NewParser(lex)
 
-		fmt.Printf("%d:%d\t%s\t%s\n", pos.Line, pos.Column, tok, lit)
-	}
+	// Évalue le code
+	p.Evaluate()
 }
