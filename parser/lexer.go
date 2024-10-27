@@ -9,11 +9,17 @@ import (
 type Token int
 
 const (
-	EOF = iota
+	EOF Token = iota
 	ILLEGAL
 	IDENT
 	INT
 	SEMI // ;
+	LPAREN // (
+	RPAREN // )
+	COMMA  // ,
+	FUNC   // Fonction
+	LBRACE  // {
+	RBRACE  // }
 
 	// Infix ops
 	ADD // +
@@ -30,13 +36,17 @@ var tokens = []string{
 	IDENT:   "IDENT",
 	INT:     "INT",
 	SEMI:    ";",
-
+	LPAREN:  "(",
+	RPAREN:  ")",
+	COMMA:   ",",
+	FUNC:    "func",
+	LBRACE:  "{",
+	RBRACE:  "}",
 	// Infix ops
 	ADD: "+",
 	SUB: "-",
 	MUL: "*",
 	DIV: "/",
-
 	ASSIGN: "=",
 }
 
@@ -45,8 +55,8 @@ func (t Token) String() string {
 }
 
 type Position struct {
-	Line   int // Exported field
-	Column int // Exported field
+	Line   int
+	Column int
 }
 
 type Lexer struct {
@@ -77,6 +87,16 @@ func (l *Lexer) Lex() (Position, Token, string) {
 			l.resetPosition()
 		case ';':
 			return l.pos, SEMI, ";"
+		case '(':
+			return l.pos, LPAREN, "("
+		case ')':
+			return l.pos, RPAREN, ")"
+		case ',':
+			return l.pos, COMMA, ","
+		case '{':
+			return l.pos, LBRACE, "{"
+		case '}':
+			return l.pos, RBRACE, "}"
 		case '+':
 			return l.pos, ADD, "+"
 		case '-':
@@ -98,8 +118,8 @@ func (l *Lexer) Lex() (Position, Token, string) {
 			} else if unicode.IsLetter(r) {
 				startPos := l.pos
 				l.backup()
-				lit := l.lexIdent()
-				return startPos, IDENT, lit
+				lit, tok := l.lexIdent() // Capture both returned values
+				return startPos, tok, lit // Return both values correctly
 			} else {
 				return l.pos, ILLEGAL, string(r)
 			}
@@ -139,22 +159,27 @@ func (l *Lexer) lexInt() string {
 	}
 }
 
-func (l *Lexer) lexIdent() string {
+func (l *Lexer) lexIdent() (string, Token) {
 	var lit string
 	for {
 		r, _, err := l.reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				return lit
+				return lit, IDENT
 			}
 		}
 
 		l.pos.Column++
-		if unicode.IsLetter(r) {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			lit += string(r)
 		} else {
 			l.backup()
-			return lit
+			break
 		}
 	}
+
+	if lit == "func" {
+		return lit, FUNC
+	}
+	return lit, IDENT
 }
