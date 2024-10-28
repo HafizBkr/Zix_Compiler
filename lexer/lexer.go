@@ -21,9 +21,15 @@ const (
 	SEMICOLON
 	FUNC
 	PRINT
-	LBRACK // Ajout pour le crochet gauche
-	RBRACK // Ajout pour le crochet droit
-	COMMA  // Ajout pour la virgule
+	LBRACK
+	RBRACK
+	COMMA
+	ASSIGN = iota + 13
+	PLUS
+	MINUS
+	MULTIPLY
+	DIVIDE
+	VARIABLE
 )
 
 type Token struct {
@@ -32,19 +38,21 @@ type Token struct {
 }
 
 type Lexer struct {
-	input       *bufio.Reader // Changer io.Reader à *bufio.Reader
+	input       *bufio.Reader
 	ch          rune
 	currentLine int
 }
 
+// NewLexer crée un nouveau lexer à partir d'un io.Reader
 func NewLexer(input io.Reader) *Lexer {
 	l := &Lexer{
-		input: bufio.NewReader(input), // Lire en utilisant bufio
+		input: bufio.NewReader(input),
 	}
 	l.next() // Initialiser le premier caractère
 	return l
 }
 
+// next lit le prochain caractère de l'entrée
 func (l *Lexer) next() rune {
 	ch, _, err := l.input.ReadRune() // Utiliser l.input qui est un *bufio.Reader
 	if err != nil {
@@ -60,6 +68,25 @@ func (l *Lexer) next() rune {
 	return l.ch
 }
 
+// PeekToken retourne le prochain token sans avancer le lexer
+func (l *Lexer) PeekToken() Token {
+	// Conserver l'état actuel
+	currentChar := l.ch
+	currentLine := l.currentLine
+	tokens := []Token{}
+
+	// Lire le prochain token
+	token := l.NextToken()
+	tokens = append(tokens, token)
+
+	// Réinitialiser l'état
+	l.ch = currentChar
+	l.currentLine = currentLine
+
+	return token
+}
+
+// NextToken lit le prochain token de l'entrée
 func (l *Lexer) NextToken() Token {
 	for unicode.IsSpace(l.ch) {
 		l.next()
@@ -71,6 +98,21 @@ func (l *Lexer) NextToken() Token {
 	case '(':
 		l.next()
 		return Token{Type: LPAREN, Lit: string('(')}
+	case '=':
+		l.next()
+		return Token{Type: ASSIGN, Lit: "="}
+	case '+':
+		l.next()
+		return Token{Type: PLUS, Lit: "+"}
+	case '-':
+		l.next()
+		return Token{Type: MINUS, Lit: "-"}
+	case '*':
+		l.next()
+		return Token{Type: MULTIPLY, Lit: "*"}
+	case '/':
+		l.next()
+		return Token{Type: DIVIDE, Lit: "/"}
 	case ')':
 		l.next()
 		return Token{Type: RPAREN, Lit: string(')')}
@@ -92,33 +134,6 @@ func (l *Lexer) NextToken() Token {
 	case ',':
 		l.next()
 		return Token{Type: COMMA, Lit: string(',')}
-	case 'f':
-		l.next()
-		if l.ch == 'u' {
-			l.next()
-			if l.ch == 'n' {
-				l.next()
-				if l.ch == 'c' {
-					l.next()
-					return Token{Type: FUNC, Lit: "func"}
-				}
-			}
-		}
-	case 'p':
-		l.next()
-		if l.ch == 'r' {
-			l.next()
-			if l.ch == 'i' {
-				l.next()
-				if l.ch == 'n' {
-					l.next()
-					if l.ch == 't' {
-						l.next()
-						return Token{Type: PRINT, Lit: "print"}
-					}
-				}
-			}
-		}
 	case '"':
 		return Token{Type: STRING, Lit: l.readString()}
 	}
@@ -134,6 +149,7 @@ func (l *Lexer) NextToken() Token {
 	return Token{Type: ILLEGAL, Lit: string(l.ch)}
 }
 
+// readString lit une chaîne de caractères
 func (l *Lexer) readString() string {
 	var lit []rune
 	l.ch = l.next() // Passer le premier guillemet
@@ -150,16 +166,33 @@ func (l *Lexer) readString() string {
 	return string(lit)
 }
 
+// readIdentifier lit un identifiant
 func (l *Lexer) readIdentifier() Token {
 	var ident []rune
 	for unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) {
 		ident = append(ident, l.ch)
 		l.ch = l.next()
 	}
-	return Token{Type: IDENT, Lit: string(ident)}
+	literal := string(ident)
+	tokenType := lookupIdent(literal)
+	return Token{Type: tokenType, Lit: literal}
 }
 
-// Ajout de la méthode readNumber
+// lookupIdent retourne le type de token correspondant à l'identifiant
+func lookupIdent(ident string) int {
+	switch ident {
+	case "func":
+		return FUNC
+	case "print":
+		return PRINT
+	case "variable":
+		return VARIABLE
+	default:
+		return IDENT
+	}
+}
+
+// readNumber lit un nombre
 func (l *Lexer) readNumber() Token {
 	var number []rune
 	for unicode.IsDigit(l.ch) {

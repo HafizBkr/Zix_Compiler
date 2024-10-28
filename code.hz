@@ -1,4 +1,7 @@
 func Salutation() {
+  variable  a= 12;
+   variable b= 11;
+   variable c= 12+12;
     print("Bonjour, le monde!");
     print([1, 2, 3, 4, 5]);
 }
