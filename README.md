@@ -68,4 +68,4 @@ Pour exécuter le compilateur, utilisez la commande suivante en spécifiant un f
       go run main.go code.hz
 
 
-Assurez-vous que code.hz contient le code que vous souhaitez compiler et exécuter.
+Assurez-vous que code.hz contient le code que vous souhaitez compiler et exécuter....
