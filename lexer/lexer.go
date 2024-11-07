@@ -30,6 +30,7 @@ const (
 	MULTIPLY
 	DIVIDE
 	VARIABLE
+	WRITE
 )
 
 type Token struct {
