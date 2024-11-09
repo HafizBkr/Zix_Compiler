@@ -62,7 +62,7 @@ Installez les dépendances (si nécessaire) :
 
       
 Utilisation
-Pour exécuter le compilateur, utilisez la commande suivante en spécifiant un fichier de code source dans le langage personnalisé :
+Pour exécuter le compilateur, utilisez la commande suivante en spécifiant un fichier de code source dans le langage personnalisé.
 
 
       go run main.go code.hz
