@@ -1,4 +1,4 @@
-# Zix Compiler
+ # Zix Compiler
 
 Zix est un compilateur écrit en Go, conçu pour analyser et exécuter un langage de programmation personnalisé. Ce projet comprend les composants essentiels d'un compilateur, notamment le lexer, le parser, le générateur de code, et plus encore.
 
