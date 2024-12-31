@@ -46,7 +46,7 @@ Le projet est structuré comme suit :
 
 ## Installation
 
-1. Clonez le dépôt :
+1. Clonez le dépôt:
 
    ```bash
    git clone https://github.com/HafizBkr/Zix_Compier.git
