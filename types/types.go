@@ -4,13 +4,13 @@ package types
 type Type string
 
 const (
-	IntType      Type = "int"
-	StringType   Type = "string"
-	BoolType     Type = "bool"
-	FloatType    Type = "float"
-	ArrayType     Type = "array"
-	FuncType     Type = "func"
-	ErrorType    Type = "error"
+	IntType      Type =  "int"
+	StringType   Type =  "string"
+	BoolType     Type =  "bool"
+	FloatType    Type =  "float"
+	ArrayType     Type =  "array"
+	FuncType     Type =  "func"
+	ErrorType    Type =  "error"
 )
 
 // SymbolTable représente une table de symboles pour stocker les types des variables.
