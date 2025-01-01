@@ -13,7 +13,7 @@ Zix est un compilateur écrit en Go, conçu pour analyser et exécuter un langag
 
 ## Fonctionnalités
 
-- Analyse lexicale avec un lexer.
+- Analyse lexicale avec un lexer .
 - Analyse syntaxique avec un parser.
 - Génération de code à partir de l'arbre de syntaxe abstraite (AST).
 - Vérification de type pour assurer la cohérence du code.
