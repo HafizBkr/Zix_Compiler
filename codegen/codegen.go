@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// CodeGenerator génère du code source.
+// CodeGenerator génère du code source a base des parametre entrer .
 type CodeGenerator struct {
 	code strings.Builder
 }
