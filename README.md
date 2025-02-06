@@ -50,12 +50,12 @@ Le projet est structuré comme suit :
 
    ```bash
    git clone https://github.com/HafizBkr/Zix_Compier.git
-Accédez au répertoire du projet :
+Accédez au répertoire du projet  :
 
       
       cd Zix_Compier
       
-Installez les dépendances (si nécessaire) :
+Installez les dépendances (si nécessaire)  :
 
 
       go mod tidy
@@ -68,4 +68,4 @@ Pour exécuter le compilateur, utilisez la commande suivante en spécifiant un f
       go run main.go code.hz
 
 
-Assurez-vous que code.hz contient le code que vous souhaitez compiler et exécuter..
+Assurez-vous que code.hz contient le code que vous souhaitez compiler et exécuter..:
