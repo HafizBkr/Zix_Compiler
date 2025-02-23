@@ -19,30 +19,6 @@ Zix est un compilateur écrit en Go, conçu pour analyser et exécuter un langag
 - Vérification de type pour assurer la cohérence du code.
 - Exécution de programmes écrits dans le langage personnalisé.
 
-## Architecture
-
-Le projet est structuré comme suit :
-
-.
-├── ast
-│   └── astGenerator.go
-├── codegen
-│   └── codegen.go
-├── code.hz
-├── go.mod
-├── input.test
-├── lexer
-│   └── lexer.go
-├── main.go
-├── parser
-│   ├── environement.go
-│   └── parser.go
-├── README.md
-├── typecheker
-│   └── typeCheker.go
-└── types
-    └── types.go
-
 
 ## Installation
 
