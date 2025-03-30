@@ -5,11 +5,9 @@ Zix est un compilateur écrit en Go, conçu pour analyser et exécuter un langag
 ## Table des matières
 
 - [Fonctionnalités](#fonctionnalités)
-- [Architecture](#architecture)
 - [Installation](#installation)
 - [Utilisation](#utilisation)
 - [Contribuer](#contribuer)
-- [License](#license)
 
 ## Fonctionnalités
 
